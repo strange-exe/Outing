@@ -1,0 +1,7 @@
+{
+    "DB_HOST": "mysql-blazememory.alwaysdata.net",
+    "DB_PORT": 3306,
+    "DB_NAME": "blazememory_outing",
+    "DB_USER": "403806",
+    "DB_PASSWORD": "TJw5bqRTBEHhdgT"
+}
