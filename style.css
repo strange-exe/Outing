@@ -1,0 +1,10 @@
+body {
+  background: #f5f6fa;
+}
+.card {
+  border-radius: 15px;
+}
+.btn {
+  border-radius: 10px;
+  font-weight: bold;
+}
