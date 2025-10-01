@@ -12,21 +12,50 @@
       <a href="{{ url_for('history', sid=student.id) }}" class="btn btn-outline-secondary w-100">📜 View History</a>
     </div>
   </div>
+
   <div class="col-md-8">
     <div class="card shadow p-4">
       {% if on_outing %}
         <h5 class="mb-3">You are currently OUTSIDE</h5>
-        <form method="POST">
+        <form method="POST" id="returnForm">
+          <!-- Hidden input to send client time -->
+          <input type="hidden" name="client_time" id="client_time_in">
           <button name="return" class="btn btn-danger w-100">✅ Mark Return</button>
         </form>
       {% else %}
         <h5 class="mb-3">Start a new outing</h5>
-        <form method="POST">
+        <form method="POST" id="outingForm">
           <input name="reason" class="form-control mb-3" placeholder="Reason for outing" required>
+          <!-- Hidden input to send client time -->
+          <input type="hidden" name="client_time" id="client_time_out">
           <button name="outing" class="btn btn-primary w-100">🚶 Start Outing</button>
         </form>
       {% endif %}
     </div>
   </div>
 </div>
+
+<script>
+// Utility to set current client time in ISO format
+function setClientTime(inputId) {
+    const now = new Date();
+    document.getElementById(inputId).value = now.toISOString();
+}
+
+// Set time before submitting outing
+const outingForm = document.getElementById('outingForm');
+if (outingForm) {
+    outingForm.addEventListener('submit', function() {
+        setClientTime('client_time_out');
+    });
+}
+
+// Set time before submitting return
+const returnForm = document.getElementById('returnForm');
+if (returnForm) {
+    returnForm.addEventListener('submit', function() {
+        setClientTime('client_time_in');
+    });
+}
+</script>
 {% endblock %}

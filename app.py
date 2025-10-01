@@ -50,9 +50,14 @@ def add_student_to_db(sid, name, course, branch, semester, hostel, mobile, passw
     db.commit()
     cursor.close()
 
-def add_outing(sid, reason):
+def add_outing(sid, reason, client_time_str=None):
     db = get_db()
-    time_out = datetime.now()
+    if client_time_str:
+        # Convert ISO string from client to datetime
+        time_out = datetime.fromisoformat(client_time_str)
+    else:
+        time_out = datetime.now()  # fallback if JS fails
+
     cursor = db.cursor()
     cursor.execute(
         "INSERT INTO outings (student_id, reason, time_out) VALUES (%s,%s,%s)",
@@ -80,9 +85,13 @@ def _format_duration(delta):
     return " ".join(parts) if parts else "0s"
 
 
-def mark_return(sid):
+def mark_return(sid, client_time_str=None):
     db = get_db()
-    time_in = datetime.now()
+    if client_time_str:
+        time_in = datetime.fromisoformat(client_time_str)
+    else:
+        time_in = datetime.now()
+
     cursor = db.cursor(dictionary=True)
     cursor.execute(
         "SELECT id, time_out FROM outings WHERE student_id=%s AND time_in IS NULL ORDER BY id DESC LIMIT 1",
@@ -99,19 +108,13 @@ def mark_return(sid):
 
     time_out = outing["time_out"]
 
-    # --- Fix: Handle timedelta ---
-    if isinstance(time_out, timedelta):
-        # interpret as seconds since midnight TODAY
-        today = datetime.combine(datetime.today(), datetime.min.time())
-        time_out = today + time_out
-
-    elif isinstance(time_out, str):
+    # Convert if string from DB
+    if isinstance(time_out, str):
         try:
             time_out = datetime.strptime(time_out, "%Y-%m-%d %H:%M:%S")
         except ValueError:
             time_out = datetime.strptime(time_out, "%Y-%m-%d %H:%M:%S.%f")
 
-    # Now safe
     duration = time_in - time_out
     return time_in, _format_duration(duration)
 
@@ -230,18 +233,19 @@ def student_page(sid):
     if request.method == "POST":
         if "outing" in request.form:
             reason = request.form["reason"].strip()
-            if not reason:
-                flash("⚠️ A reason for the outing is required.", "warning")
-            else:
-                t_out = add_outing(sid, reason)
-                flash(f"🫡 Outing started at {t_out.strftime('%I:%M %p')}", "info")
+            client_time_str = request.form.get("client_time")
+            t_out = add_outing(sid, reason, client_time_str)
+            flash(f"🫡 Outing started at {t_out.strftime('%I:%M %p')}", "info")
+
         elif "return" in request.form:
-            t_in, duration = mark_return(sid)
+            client_time_str = request.form.get("client_time")
+            t_in, duration = mark_return(sid, client_time_str)
             if t_in:
                 flash(f"✅ Returned at {t_in.strftime('%I:%M %p')}. Total duration: {duration}", "success")
             else:
                 flash("⚠️ No active outing found to mark as returned.", "warning")
         return redirect(url_for("student_page", sid=sid))
+
 
     return render_template("student.html", student=student, on_outing=is_on_outing(sid))
 
