@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card shadow-lg p-4">
+  <h4 class="mb-3 text-center">📝 Register New Student</h4>
+  <form method="POST">
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <input name="id" value="{{ sid if sid != '0' else '' }}" class="form-control" placeholder="Student Id" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <input name="name" class="form-control" placeholder="Full Name" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <input name="course" class="form-control" placeholder="Course" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <input name="branch" class="form-control" placeholder="Branch" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <input name="semester" class="form-control" placeholder="Semester" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <input name="hostel" class="form-control" placeholder="Hostel" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <input name="mobile" type="tel" pattern="[0-9]{10}" maxlength="10" class="form-control" placeholder="Mobile Number" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <input name="password" type="password" class="form-control" placeholder="Password" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <input name="confirm_password" type="password" class="form-control" placeholder="Confirm Password" required>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-success w-100 mt-2">✅ Register</button>
+    <p class="text-center mt-3">
+      Already registered? <a href="{{ url_for('login') }}">Login here</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

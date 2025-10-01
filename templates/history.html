@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card shadow p-4">
+  <h4>📜 Outing History - {{ student.name }}</h4>
+  <table class="table table-striped mt-3">
+    <thead class="table-primary">
+      <tr>
+        <th>Reason</th>
+        <th>Out Time</th>
+        <th>Return Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in outings %}
+        <tr>
+          <td>{{ o.reason }}</td>
+          <td>{{ o.time_out }}</td>
+          <td>{{ o.time_in if o.time_in else "⏳ Not Returned" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
