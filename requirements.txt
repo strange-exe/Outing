@@ -1,5 +1,5 @@
-Flask==2.3.4
-Werkzeug==2.3.8
-mysql-connector-python==8.1.1
+flask>=3.0
+werkzeug>=3.0
+mysql-connector-python>=9.0
+gunicorn>=23.0
 pytz==2025.7
-gunicorn==21.2.0
