@@ -1,31 +1,32 @@
 # app.py
 from flask import Flask, render_template, request, redirect, url_for, flash, session, g
 from werkzeug.security import generate_password_hash, check_password_hash
-from db import get_db_connection  # Import the function
+from db import get_db_connection
 from datetime import datetime, timedelta
 import mysql.connector
 import json
+import pytz
 
 app = Flask(__name__)
 
-# Load configuration from config.json
+# Load config
 with open("config.json") as f:
     config = json.load(f)
 
-# Set the secret key from the config file for better security
 app.secret_key = config.get("SECRET_KEY", "a-default-fallback-secret-key")
 app.permanent_session_lifetime = timedelta(days=7)
 
-# --- Database Connection Management ---
+# Timezone
+TZ = pytz.timezone('Asia/Kolkata')
+
+# ---------- Database Management ----------
 def get_db():
-    """Get a database connection for the current request."""
     if 'db' not in g:
         g.db = get_db_connection()
     return g.db
 
 @app.teardown_appcontext
 def close_db(e=None):
-    """Close the database connection at the end of the request."""
     db = g.pop('db', None)
     if db is not None:
         db.close()
@@ -50,9 +51,22 @@ def add_student_to_db(sid, name, course, branch, semester, hostel, mobile, passw
     db.commit()
     cursor.close()
 
+# ---------- Outing Helpers ----------
+def _format_duration(delta):
+    total_seconds = int(delta.total_seconds())
+    if total_seconds < 0:
+        total_seconds = 0
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    parts = []
+    if hours: parts.append(f"{hours}h")
+    if minutes: parts.append(f"{minutes}m")
+    parts.append(f"{seconds}s")
+    return " ".join(parts) if parts else "0s"
+
 def add_outing(sid, reason):
     db = get_db()
-    time_out = datetime.now()
+    time_out = datetime.now(TZ)  # aware datetime
     cursor = db.cursor()
     cursor.execute(
         "INSERT INTO outings (student_id, reason, time_out) VALUES (%s,%s,%s)",
@@ -62,27 +76,10 @@ def add_outing(sid, reason):
     cursor.close()
     return time_out
 
-def _format_duration(delta):
-    if not isinstance(delta, timedelta):
-        raise TypeError(f"_format_duration expected timedelta, got {type(delta)}")
-
-    total_seconds = int(delta.total_seconds())
-    if total_seconds < 0:
-        total_seconds = 0
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    parts = []
-    if hours:
-        parts.append(f"{hours}h")
-    if minutes:
-        parts.append(f"{minutes}m")
-    parts.append(f"{seconds}s")
-    return " ".join(parts) if parts else "0s"
-
-
 def mark_return(sid):
     db = get_db()
-    time_in = datetime.now()
+    time_in = datetime.now(TZ)  # aware datetime
+
     cursor = db.cursor(dictionary=True)
     cursor.execute(
         "SELECT id, time_out FROM outings WHERE student_id=%s AND time_in IS NULL ORDER BY id DESC LIMIT 1",
@@ -93,37 +90,29 @@ def mark_return(sid):
         cursor.close()
         return None, None
 
-    cursor.execute("UPDATE outings SET time_in=%s WHERE id=%s", (time_in, outing["id"]))
-    db.commit()
-    cursor.close()
-
+    # Ensure time_out is aware
     time_out = outing["time_out"]
-
-    # --- Fix: Handle timedelta ---
-    if isinstance(time_out, timedelta):
-        # interpret as seconds since midnight TODAY
-        today = datetime.combine(datetime.today(), datetime.min.time())
-        time_out = today + time_out
-
-    elif isinstance(time_out, str):
+    if isinstance(time_out, str):
         try:
             time_out = datetime.strptime(time_out, "%Y-%m-%d %H:%M:%S")
         except ValueError:
             time_out = datetime.strptime(time_out, "%Y-%m-%d %H:%M:%S.%f")
 
-    # Now safe
+    if time_out.tzinfo is None:
+        time_out = TZ.localize(time_out)
+
+    cursor.execute("UPDATE outings SET time_in=%s WHERE id=%s", (time_in, outing['id']))
+    db.commit()
+    cursor.close()
+
     duration = time_in - time_out
     return time_in, _format_duration(duration)
-
 
 def is_on_outing(sid):
     db = get_db()
     cursor = db.cursor()
-    cursor.execute(
-        "SELECT id FROM outings WHERE student_id=%s AND time_in IS NULL", (sid,)
-    )
+    cursor.execute("SELECT id FROM outings WHERE student_id=%s AND time_in IS NULL", (sid,))
     res = cursor.fetchone()
-    # Consume any unread results to avoid "Unread result found"
     cursor.fetchall()
     cursor.close()
     return bool(res)
@@ -138,20 +127,19 @@ def get_outing_history(sid):
     cursor.close()
     return rows
 
-# ---------- Auth Routes ----------
+# ---------- Routes ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         sid = request.form["sid"].strip()
         password = request.form["password"]
         student = get_student(sid)
-        if student and "password" in student and check_password_hash(student["password"], password):
+        if student and check_password_hash(student["password"], password):
             session.permanent = True
             session["sid"] = str(sid)
             flash("✅ Login successful!", "success")
             return redirect(url_for("student_page", sid=sid))
-        else:
-            flash("❌ Invalid Student ID or password.", "danger")
+        flash("❌ Invalid Student ID or password.", "danger")
     return render_template("login.html")
 
 @app.route("/logout")
@@ -160,7 +148,6 @@ def logout():
     flash("👋 You have been logged out.", "info")
     return redirect(url_for("login"))
 
-# ---------- Public Routes ----------
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -168,15 +155,14 @@ def index():
         if not sid:
             flash("⚠️ Please enter a Student ID.", "warning")
             return redirect(url_for("index"))
-        
+
         student = get_student(sid)
         if student:
             if session.get("sid") == str(sid):
                 return redirect(url_for("student_page", sid=sid))
             return redirect(url_for("login"))
-        else:
-            flash(f"Student ID '{sid}' not found. Please register.", "danger")
-            return redirect(url_for("register", sid=sid))
+        flash(f"Student ID '{sid}' not found. Please register.", "danger")
+        return redirect(url_for("register", sid=sid))
     return render_template("index.html")
 
 @app.route("/register/", defaults={'sid': '0'}, methods=["GET", "POST"])
@@ -186,11 +172,9 @@ def register(sid):
         sid = request.form["id"].strip()
         password = request.form["password"]
         confirm = request.form.get("confirm_password", "")
-
         if password != confirm:
             flash("❌ Passwords do not match.", "danger")
             return redirect(url_for("register", sid=sid))
-
         try:
             pw_hash = generate_password_hash(password)
             add_student_to_db(
@@ -206,48 +190,46 @@ def register(sid):
             flash("✅ Student registered successfully! Please login.", "success")
             return redirect(url_for("login"))
         except mysql.connector.Error as err:
-            if err.errno == 1062: # Duplicate entry
+            if err.errno == 1062:
                 flash(f"❌ Student ID '{sid}' is already registered.", "danger")
             else:
                 flash(f"❌ A database error occurred: {err}", "danger")
             return redirect(url_for("register", sid=sid))
-
     return render_template("register.html", sid=sid)
 
-# ---------- Protected Routes ----------
 @app.route("/student/<sid>", methods=["GET", "POST"])
 def student_page(sid):
-    if "sid" not in session or session["sid"] != str(sid):
+    if session.get("sid") != str(sid):
         flash("⚠️ Please log in to access this page.", "warning")
         return redirect(url_for("login"))
 
     student = get_student(sid)
     if not student:
         flash("❌ Student not found!", "danger")
-        session.pop("sid", None)  # Log out user if their ID disappears
+        session.pop("sid", None)
         return redirect(url_for("index"))
 
     if request.method == "POST":
         if "outing" in request.form:
             reason = request.form["reason"].strip()
-            if not reason:
-                flash("⚠️ A reason for the outing is required.", "warning")
-            else:
+            if reason:
                 t_out = add_outing(sid, reason)
                 flash(f"🫡 Outing started at {t_out.strftime('%I:%M %p')}", "info")
+            else:
+                flash("⚠️ Reason required.", "warning")
         elif "return" in request.form:
             t_in, duration = mark_return(sid)
             if t_in:
                 flash(f"✅ Returned at {t_in.strftime('%I:%M %p')}. Total duration: {duration}", "success")
             else:
-                flash("⚠️ No active outing found to mark as returned.", "warning")
+                flash("⚠️ No active outing found.", "warning")
         return redirect(url_for("student_page", sid=sid))
 
     return render_template("student.html", student=student, on_outing=is_on_outing(sid))
 
 @app.route("/history/<sid>")
 def history(sid):
-    if "sid" not in session or session["sid"] != str(sid):
+    if session.get("sid") != str(sid):
         flash("⚠️ Please log in to view outing history.", "warning")
         return redirect(url_for("login"))
 
