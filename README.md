@@ -9,6 +9,9 @@ The system also emphasizes **security** by hashing passwords with Werkzeug and r
 
 ---
 
+## Demo Link
+[Click Here](https://outing.abhinesh.me/)
+
 ## Features
 
 - **Student Registration & Login**  
