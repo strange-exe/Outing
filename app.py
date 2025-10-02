@@ -70,13 +70,13 @@ def get_student(sid):
     cursor.close()
     return student
 
-def add_student_to_db(sid, name, course, branch, semester, hostel, mobile, password_hash):
+def add_student_to_db(sid, name, course, branch, semester, year, hostel, room, mobile, password_hash):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        """INSERT INTO students (id, name, course, branch, semester, hostel, mobile, password)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s)""",
-        (sid, name, course, branch, semester, hostel, mobile, password_hash)
+        """INSERT INTO students (id, name, course, branch, semester, year, hostel, room, mobile, password)
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+        (sid, name, course, branch, semester, year, hostel, room, mobile, password_hash)
     )
     db.commit()
     cursor.close()
@@ -168,7 +168,7 @@ def login():
             session.permanent = True
             session["sid"] = str(sid)
             flash("✅ Login successful!", "success")
-            return redirect(url_for("student_page", sid=sid))
+            return redirect(url_for("student_page"))
         flash("❌ Invalid Student ID or password.", "danger")
     return render_template("login.html")
 
@@ -193,16 +193,15 @@ def index():
         flash("Invalid Student ID or password.", "danger")
     return render_template("index.html")
 
-@app.route("/register/", defaults={'sid': '0'}, methods=["GET", "POST"])
-@app.route("/register/<sid>", methods=["GET", "POST"])
-def register(sid):
+@app.route("/register", methods=["GET", "POST"])
+def register():
     if request.method == "POST":
         sid = request.form["id"].strip()
         password = request.form["password"]
         confirm = request.form.get("confirm_password", "")
         if password != confirm:
             flash("Passwords do not match.", "danger")
-            return redirect(url_for("register", sid=sid))
+            return redirect(url_for("register"))
         try:
             pw_hash = generate_password_hash(password)
             add_student_to_db(
@@ -211,7 +210,9 @@ def register(sid):
                 request.form["course"].strip(),
                 request.form["branch"].strip(),
                 request.form["semester"].strip(),
+                request.form["year"].strip(),
                 request.form["hostel"].strip(),
+                request.form.get("room", "").strip(),  # Optional field
                 request.form["mobile"].strip(),
                 pw_hash
             )
@@ -222,12 +223,13 @@ def register(sid):
                 flash(f"Student ID '{sid}' is already registered.", "danger")
             else:
                 flash(f"A database error occurred: {err}", "danger")
-            return redirect(url_for("register", sid=sid))
-    return render_template("register.html", sid=sid)
+            return redirect(url_for("register"))
+    return render_template("register.html")
 
-@app.route("/student/<sid>", methods=["GET", "POST"])
-def student_page(sid):
-    if session.get("sid") != str(sid):
+@app.route("/student", methods=["GET", "POST"])
+def student_page():
+    sid = session.get("sid")
+    if not sid:
         flash("⚠️ Please log in to access this page.", "warning")
         return redirect(url_for("login"))
 
@@ -251,13 +253,15 @@ def student_page(sid):
                 flash(f"Returned at {t_in.strftime('%I:%M %p')}. Total duration: {duration}", "success")
             else:
                 flash("⚠️ No active outing found.", "warning")
-        return redirect(url_for("student_page", sid=sid))
+        return redirect(url_for("student_page"))
 
     return render_template("student.html", student=student, on_outing=is_on_outing(sid))
 
-@app.route("/history/<sid>")
-def history(sid):
-    if session.get("sid") != str(sid):
+
+@app.route("/history", methods=["GET", "POST"])
+def history():
+    sid = session.get("sid")
+    if not sid:
         flash("⚠️ Please log in to view outing history.", "warning")
         return redirect(url_for("login"))
 

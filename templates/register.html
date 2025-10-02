@@ -7,7 +7,7 @@
     <!-- Header with Gradient -->
     <div class="card-header-gradient">
       <h4 class="mb-0 text-center text-white">
-        <span class="header-icon">📝</span>
+        <span class="header-icon"></span>
         Register New Student
       </h4>
     </div>
@@ -265,15 +265,15 @@
         </div>
       </div>
 
-      <!-- Submit Button -->
-      <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">
-        <span class="btn-text">✅ Complete Registration</span>
-        <span class="btn-loading" style="display: none;">
-          <span class="spinner-border spinner-border-sm me-2"></span>
-          Registering...
-        </span>
-      </button>
-
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary btn-lg w-auto mt-3">
+          <span class="btn-text">Complete Registration</span>
+          <span class="btn-loading" style="display: none;">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Registering...
+          </span>
+        </button>
+      </div>
       <!-- Login Link -->
       <p class="text-center mt-3">
         Already registered? <a href="{{ url_for('login') }}" class="fancy-link">Login here</a>
@@ -944,12 +944,6 @@ function updateFormProgress() {
       step.classList.add('completed');
     }
   });
-}
-
-// Show success toast after registration (if needed)
-function showSuccessToast() {
-  const toast = new bootstrap.Toast(document.getElementById('successToast'));
-  toast.show();
 }
 </script>
 

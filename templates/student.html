@@ -6,12 +6,12 @@
   <div class="col-md-4">
     <div class="card card-glass shadow-lg p-4 text-center">
       <i class="fas fa-user-graduate fa-3x mb-3 text-primary"></i>
-      <h4 class="sname">{{ student.name }}</h4>
+      <h4 class="sname">{{ student.name.split(' ')[0] }}</h4>
       <div class="selection-summary mb-3">
         <div class="summary-badges d-flex flex-wrap gap-1 justify-content-center">
           <span class="badge bg-success">{{ student.course }}</span>
           <span class="badge bg-secondary">{{ student.branch }}</span>
-          <span class="badge bg-info">{{ student.year }}{{ student.year|ordinal }} Year</span>
+          <span class="badge bg-info">Y{{ student.year }}</span>
           <span class="badge bg-warning">Sem {{ student.semester }}</span>
         </div>
       </div>
@@ -24,7 +24,9 @@
       {% endif %}
     </div>
     <br>
-      <a href="{{ url_for('history', sid=student.id) }}" class="btn btn-outline-secondary w-100">📜 View History</a>
+      <form action="{{ url_for('history') }}" method="POST">
+        <button class="btn btn-outline-secondary w-100">📜 View History</button>
+      </form>
     </div>
   </div>
 <style>
@@ -57,17 +59,19 @@
       {% if on_outing %}
         <h5 class="mb-3 text-danger">You are currently OUTSIDE</h5>
         <form method="POST">
-          <button name="return" class="btn btn-danger w-100">Mark Return</button>
+          <div class="text-center">
+            <button name="return" class="btn btn-danger w-auto">Mark Return</button></div>
         </form>
       {% else %}
         <h5 class="mb-3 text-primary">Start a New Outing</h5>
         <form method="POST" class="needs-validation" novalidate>
           <div class="form-floating mb-3">
-            <input name="reason" class="form-control" placeholder="Reason for outing" required>
+            <input id="reason" name="reason" class="form-control" placeholder="Reason for outing" required>
             <label for="reason">Reason for Outing</label>
             <div class="invalid-feedback">Please enter a reason for your outing.</div>
           </div>
-          <button name="outing" class="btn btn-primary w-100">Start Outing</button>
+          <div class="text-center">
+            <button name="outing" class="btn btn-primary w-auto">Start Outing</button></div>
         </form>
       {% endif %}
     </div>
@@ -76,6 +80,13 @@
 
 <!-- Enhanced CSS for badges & card glass effect -->
 <style>
+.form-floating #reason:focus ~ label,
+.form-floating #reason:not(:placeholder-shown) ~ label {
+  top: -1.75rem;
+  transform: translateY(0);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
 .card-glass {
   border: none;
   border-radius: 20px;
