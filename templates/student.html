@@ -11,7 +11,7 @@
         <div class="summary-badges d-flex flex-wrap gap-1 justify-content-center">
           <span class="badge bg-success">{{ student.course }}</span>
           <span class="badge bg-secondary">{{ student.branch }}</span>
-          <span class="badge bg-info">Y{{ student.year }}</span>
+          <span class="badge bg-info">Year {{ student.year | ordinal }}</span>
           <span class="badge bg-warning">Sem {{ student.semester }}</span>
         </div>
       </div>
