@@ -1,32 +1,118 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <div class="row">
+  <!-- Student Profile Card -->
   <div class="col-md-4">
-    <div class="card shadow p-3 text-center">
-      <i class="fas fa-user-graduate fa-3x mb-2 text-primary"></i>
-      <h4>{{ student.name }}</h4>
-      <p><b>Course:</b> {{ student.course }}</p>
-      <p><b>Branch:</b> {{ student.branch }}</p>
-      <p><b>Semester:</b> {{ student.semester }}</p>
-      <p><b>Hostel:</b> {{ student.hostel }}</p>
+    <div class="card card-glass shadow-lg p-4 text-center">
+      <i class="fas fa-user-graduate fa-3x mb-3 text-primary"></i>
+      <h4 class="sname">{{ student.name }}</h4>
+      <div class="selection-summary mb-3">
+        <div class="summary-badges d-flex flex-wrap gap-1 justify-content-center">
+          <span class="badge bg-success">{{ student.course }}</span>
+          <span class="badge bg-secondary">{{ student.branch }}</span>
+          <span class="badge bg-info">{{ student.year }}{{ student.year|ordinal }} Year</span>
+          <span class="badge bg-warning">Sem {{ student.semester }}</span>
+        </div>
+      </div>
+    <div class="card card-glass shadow-lg p-4 text-center">
+      <div class="glass-info mb-2">Student ID: {{ student.id }}</div>
+      <div class="glass-info mb-2">Mobile: {{ student.mobile }}</div>
+      <div class="glass-info mb-2">Hostel: {{ student.hostel }}</div>
+      {% if student.room %}
+      <div class="glass-info mb-2">Room: {{ student.room }}</div>
+      {% endif %}
+    </div>
+    <br>
       <a href="{{ url_for('history', sid=student.id) }}" class="btn btn-outline-secondary w-100">📜 View History</a>
     </div>
   </div>
+<style>
+  .card-glass {
+  border: none;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.15); /* more transparent */
+  backdrop-filter: blur(10px);
+  color: #fff; /* make text white */
+}
+
+.card-glass span {
+  display: block;
+  margin: 4px 0;
+}
+.glass-info {
+  backdrop-filter: blur(8px);
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+</style>
+
+  <!-- Outing Actions Card -->
   <div class="col-md-8">
-    <div class="card shadow p-4">
+    <div class="card card-glass shadow-lg p-4">
       {% if on_outing %}
-        <h5 class="mb-3">You are currently OUTSIDE</h5>
+        <h5 class="mb-3 text-danger">You are currently OUTSIDE</h5>
         <form method="POST">
-          <button name="return" class="btn btn-danger w-100">✅ Mark Return</button>
+          <button name="return" class="btn btn-danger w-100">Mark Return</button>
         </form>
       {% else %}
-        <h5 class="mb-3">Start a new outing</h5>
-        <form method="POST">
-          <input name="reason" class="form-control mb-3" placeholder="Reason for outing" required>
-          <button name="outing" class="btn btn-primary w-100">🚶 Start Outing</button>
+        <h5 class="mb-3 text-primary">Start a New Outing</h5>
+        <form method="POST" class="needs-validation" novalidate>
+          <div class="form-floating mb-3">
+            <input name="reason" class="form-control" placeholder="Reason for outing" required>
+            <label for="reason">Reason for Outing</label>
+            <div class="invalid-feedback">Please enter a reason for your outing.</div>
+          </div>
+          <button name="outing" class="btn btn-primary w-100">Start Outing</button>
         </form>
       {% endif %}
     </div>
   </div>
 </div>
+
+<!-- Enhanced CSS for badges & card glass effect -->
+<style>
+.card-glass {
+  border: none;
+  border-radius: 20px;
+  background: rgba(3, 33, 40, 1);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.selection-summary {
+  background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+  border-radius: 10px;
+  padding: 0.5rem;
+  margin: 0.75rem 0;
+  border: 1px solid rgba(102,126,234,0.2);
+}
+
+.summary-badges .badge {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+}
+</style>
+
+<!-- Optional JS for client-side validation -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const forms = document.querySelectorAll('.needs-validation');
+  Array.from(forms).forEach(form => {
+    form.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    }, false);
+  });
+});
+
+</script>
+
 {% endblock %}

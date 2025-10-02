@@ -32,6 +32,36 @@ def close_db(e=None):
         db.close()
 
 # ---------- Helpers ----------
+def get_ordinal_suffix(num):
+    if num is None:
+        return ""  # return empty string if no value
+    try:
+        j = int(num) % 10
+        k = int(num) % 100
+        if j == 1 and k != 11:
+            return "st"
+        elif j == 2 and k != 12:
+            return "nd"
+        elif j == 3 and k != 13:
+            return "rd"
+        else:
+            return "th"
+    except (ValueError, TypeError):
+        return ""  # fallback in case num is invalid
+
+app.jinja_env.filters['ordinal'] = get_ordinal_suffix
+
+def format_duration(start, end):
+    if not start or not end:
+        return "N/A"
+    delta = end - start
+    hours, remainder = divmod(delta.total_seconds(), 3600)
+    minutes, _ = divmod(remainder, 60)
+    return f"{int(hours)}h {int(minutes)}m {int(_)}s"
+
+app.jinja_env.filters['duration'] = format_duration
+
+
 def get_student(sid):
     db = get_db()
     cursor = db.cursor(dictionary=True)
@@ -149,20 +179,18 @@ def logout():
     return redirect(url_for("login"))
 
 @app.route("/", methods=["GET", "POST"])
+
 def index():
     if request.method == "POST":
         sid = request.form["sid"].strip()
-        if not sid:
-            flash("⚠️ Please enter a Student ID.", "warning")
-            return redirect(url_for("index"))
-
+        password = request.form["password"]
         student = get_student(sid)
-        if student:
-            if session.get("sid") == str(sid):
-                return redirect(url_for("student_page", sid=sid))
-            return redirect(url_for("login"))
-        flash(f"Student ID '{sid}' not found. Please register.", "danger")
-        return redirect(url_for("register", sid=sid))
+        if student and check_password_hash(student["password"], password):
+            session.permanent = True
+            session["sid"] = str(sid)
+            flash("Login successful!", "success")
+            return redirect(url_for("student_page", sid=sid))
+        flash("Invalid Student ID or password.", "danger")
     return render_template("index.html")
 
 @app.route("/register/", defaults={'sid': '0'}, methods=["GET", "POST"])
@@ -173,7 +201,7 @@ def register(sid):
         password = request.form["password"]
         confirm = request.form.get("confirm_password", "")
         if password != confirm:
-            flash("❌ Passwords do not match.", "danger")
+            flash("Passwords do not match.", "danger")
             return redirect(url_for("register", sid=sid))
         try:
             pw_hash = generate_password_hash(password)
@@ -187,13 +215,13 @@ def register(sid):
                 request.form["mobile"].strip(),
                 pw_hash
             )
-            flash("✅ Student registered successfully! Please login.", "success")
+            flash("Student registered successfully! Please login.", "success")
             return redirect(url_for("login"))
         except mysql.connector.Error as err:
             if err.errno == 1062:
-                flash(f"❌ Student ID '{sid}' is already registered.", "danger")
+                flash(f"Student ID '{sid}' is already registered.", "danger")
             else:
-                flash(f"❌ A database error occurred: {err}", "danger")
+                flash(f"A database error occurred: {err}", "danger")
             return redirect(url_for("register", sid=sid))
     return render_template("register.html", sid=sid)
 
@@ -205,7 +233,7 @@ def student_page(sid):
 
     student = get_student(sid)
     if not student:
-        flash("❌ Student not found!", "danger")
+        flash("Student not found!", "danger")
         session.pop("sid", None)
         return redirect(url_for("index"))
 
@@ -220,7 +248,7 @@ def student_page(sid):
         elif "return" in request.form:
             t_in, duration = mark_return(sid)
             if t_in:
-                flash(f"✅ Returned at {t_in.strftime('%I:%M %p')}. Total duration: {duration}", "success")
+                flash(f"Returned at {t_in.strftime('%I:%M %p')}. Total duration: {duration}", "success")
             else:
                 flash("⚠️ No active outing found.", "warning")
         return redirect(url_for("student_page", sid=sid))
@@ -235,7 +263,7 @@ def history(sid):
 
     student = get_student(sid)
     if not student:
-        flash("❌ Student not found!", "danger")
+        flash("Student not found!", "danger")
         return redirect(url_for("index"))
 
     outings = get_outing_history(sid)

@@ -1,41 +1,956 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="card shadow-lg p-4">
-  <h4 class="mb-3 text-center">📝 Register New Student</h4>
-  <form method="POST">
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <input name="id" value="{{ sid if sid != '0' else '' }}" class="form-control" placeholder="Student Id" required>
+
+<!-- Enhanced Registration Card -->
+<div class="registration-container">
+  <div class="card card-glass shadow-lg p-4 registration-card">
+    <!-- Header with Gradient -->
+    <div class="card-header-gradient">
+      <h4 class="mb-0 text-center text-white">
+        <span class="header-icon">📝</span>
+        Register New Student
+      </h4>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress">
+        <div class="progress-bar" id="formProgress" style="width: 0%"></div>
       </div>
-      <div class="col-md-6 mb-3">
-        <input name="name" class="form-control" placeholder="Full Name" required>
-      </div>
-      <div class="col-md-6 mb-3">
-        <input name="course" class="form-control" placeholder="Course" required>
-      </div>
-      <div class="col-md-6 mb-3">
-        <input name="branch" class="form-control" placeholder="Branch" required>
-      </div>
-      <div class="col-md-6 mb-3">
-        <input name="semester" class="form-control" placeholder="Semester" required>
-      </div>
-      <div class="col-md-6 mb-3">
-        <input name="hostel" class="form-control" placeholder="Hostel" required>
-      </div>
-      <div class="col-md-6 mb-3">
-        <input name="mobile" type="tel" pattern="[0-9]{10}" maxlength="10" class="form-control" placeholder="Mobile Number" required>
-      </div>
-      <div class="col-md-6 mb-3">
-        <input name="password" type="password" class="form-control" placeholder="Password" required>
-      </div>
-      <div class="col-md-6 mb-3">
-        <input name="confirm_password" type="password" class="form-control" placeholder="Confirm Password" required>
+      <div class="progress-steps">
+        <span class="step active" data-step="1">Personal</span>
+        <span class="step" data-step="2">Academic</span>
+        <span class="step" data-step="3">Contact</span>
+        <span class="step" data-step="4">Security</span>
       </div>
     </div>
-    <button type="submit" class="btn btn-success w-100 mt-2">✅ Register</button>
-    <p class="text-center mt-3">
-      Already registered? <a href="{{ url_for('login') }}">Login here</a>
-    </p>
-  </form>
+
+    <form method="POST" id="registrationForm" class="needs-validation" novalidate>
+      <div class="row">
+        <!-- Student ID -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <input 
+              name="id" 
+              id="studentId"
+              value="{{ sid if sid != '0' else '' }}" 
+              class="form-control" 
+              placeholder="Student Id" 
+              required
+              data-step="1"
+            >
+            <label for="studentId">Student ID</label>
+            <div class="invalid-feedback">Please provide a valid Student ID.</div>
+          </div>
+        </div>
+
+        <!-- Full Name -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <input 
+              name="name" 
+              id="fullName"
+              class="form-control" 
+              placeholder="Full Name" 
+              required
+              pattern="[A-Za-z\s]{3,50}"
+              data-step="1"
+            >
+            <label for="fullName">Full Name</label>
+            <div class="invalid-feedback">Please enter your full name (3-50 characters).</div>
+          </div>
+        </div>
+
+        <!-- Course Dropdown -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <select 
+              name="course" 
+              id="course" 
+              class="form-select custom-select" 
+              required
+              data-step="2"
+            >
+              <option value="" disabled selected>Select Course...</option>
+              <option value="BTech">BTech (Bachelor of Technology)</option>
+              <option value="BCA">BCA (Bachelor of Computer Applications)</option>
+              <option value="BBA">BBA (Bachelor of Business Administration)</option>
+              <option value="BSc">B.Sc (Bachelor of Science)</option>
+              <option value="BCom">B.Com (Bachelor of Commerce)</option>
+              <option value="BA">BA (Bachelor of Arts)</option>
+              <option value="MTech">M.Tech (Master of Technology)</option>
+              <option value="MCA">MCA (Master of Computer Applications)</option>
+              <option value="MBA">MBA (Master of Business Administration)</option>
+              <option value="MSc">M.Sc (Master of Science)</option>
+              <option value="MA">MA (Master of Arts)</option>
+            </select>
+            <label for="course">Course</label>
+            <div class="invalid-feedback">Please select your course.</div>
+          </div>
+        </div>
+
+        <!-- Branch Dropdown (Dynamic) -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <select 
+              name="branch" 
+              id="branch" 
+              class="form-select custom-select" 
+              required
+              disabled
+              data-step="2"
+            >
+              <option value="" disabled selected>Select Branch...</option>
+            </select>
+            <label for="branch">Branch/Specialization</label>
+            <div class="invalid-feedback">Please select your branch.</div>
+          </div>
+        </div>
+
+        <!-- Year/Semester Dropdown -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <select 
+              name="year" 
+              id="year" 
+              class="form-select custom-select" 
+              required
+              disabled
+              data-step="2"
+            >
+              <option value="" disabled selected>Select Year...</option>
+            </select>
+            <label for="year">Year</label>
+            <div class="invalid-feedback">Please select your year.</div>
+          </div>
+        </div>
+
+        <!-- Semester -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <select 
+              name="semester" 
+              id="semester" 
+              class="form-select custom-select" 
+              required
+              disabled
+              data-step="2"
+            >
+              <option value="" disabled selected>Select Semester...</option>
+            </select>
+            <label for="semester">Semester</label>
+            <div class="invalid-feedback">Please select your semester.</div>
+          </div>
+        </div>
+
+        <!-- Hostel -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <select 
+              name="hostel" 
+              id="hostel" 
+              class="form-select custom-select" 
+              required
+              data-step="3"
+            >
+              <option value="" disabled selected>Select Hostel...</option>
+              <option value="CSA">C.S.A. (Boys)</option>
+              <option value="SP">S.P. (Boys)</option>
+              <option value="Laxmi Bai">Laxmi Bai (Girls)</option>
+              <option value="Priyadarshani">Priyadarshani (Girls)</option>
+              <option value="Sarojani">Sarojani (Girls)</option>
+            </select>
+            <label for="hostel">Hostel</label>
+            <div class="invalid-feedback">Please select your hostel.</div>
+          </div>
+        </div>
+
+        <!-- Room Number (Optional) -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <input 
+              name="room" 
+              id="roomNumber"
+              class="form-control" 
+              placeholder="Room Number"
+              data-step="3"
+            >
+            <label for="roomNumber">Room Number (Optional)</label>
+          </div>
+        </div>
+
+        <!-- Mobile Number -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <input 
+              name="mobile" 
+              id="mobile"
+              type="tel" 
+              pattern="[0-9]{10}" 
+              maxlength="10" 
+              class="form-control" 
+              placeholder="Mobile Number" 
+              required
+              data-step="3"
+            >
+            <label for="mobile">Mobile Number</label>
+            <div class="invalid-feedback">Please provide a valid 10-digit mobile number.</div>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating password-field">
+            <input 
+              name="password" 
+              id="password"
+              type="password" 
+              class="form-control" 
+              placeholder="Password" 
+              required
+              pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{5,}"
+              data-step="4"
+            >
+            <label for="password">Password</label>
+            <span class="password-toggle" onclick="togglePassword('password')">
+              <i class="fas fa-eye"></i>
+            </span>
+            <div class="invalid-feedback">
+              Password must contain at least 5 characters, including uppercase, lowercase, and numbers.
+            </div>
+            <div class="password-strength">
+              <div class="strength-bar" id="strengthBar"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="col-md-6 mb-3">
+          <div class="form-floating password-field">
+            <input 
+              name="confirm_password" 
+              id="confirmPassword"
+              type="password" 
+              class="form-control" 
+              placeholder="Confirm Password" 
+              required
+              data-step="4"
+            >
+            <label for="confirmPassword">Confirm Password</label>
+            <span class="password-toggle" onclick="togglePassword('confirmPassword')">
+              <i class="fas fa-eye"></i>
+            </span>
+            <div class="invalid-feedback">Passwords do not match.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="terms" required>
+        <label class="form-check-label" for="terms">
+          I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+        </label>
+        <div class="invalid-feedback">You must agree before submitting.</div>
+      </div>
+
+      <!-- Selected Info Display -->
+      <div id="selectionSummary" class="selection-summary" style="display: none;">
+        <h5>Registration Summary:</h5>
+        <div class="summary-badges">
+          <span class="badge badge-primary" id="courseBadge"></span>
+          <span class="badge badge-secondary" id="branchBadge"></span>
+          <span class="badge badge-info" id="yearBadge"></span>
+          <span class="badge badge-success" id="semesterBadge"></span>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">
+        <span class="btn-text">✅ Complete Registration</span>
+        <span class="btn-loading" style="display: none;">
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Registering...
+        </span>
+      </button>
+
+      <!-- Login Link -->
+      <p class="text-center mt-3">
+        Already registered? <a href="{{ url_for('login') }}" class="fancy-link">Login here</a>
+      </p>
+    </form>
+  </div>
 </div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Terms and Conditions</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6>1. Student Conduct</h6>
+        <p>All students must maintain proper discipline during college outings...</p>
+        <h6>2. Safety Guidelines</h6>
+        <p>Students must follow all safety instructions provided by faculty...</p>
+        <h6>3. Liability</h6>
+        <p>The college will not be responsible for any personal belongings...</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div id="successToast" class="toast" role="alert">
+    <div class="toast-header bg-success text-white">
+      <strong class="me-auto">Success!</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      Registration completed successfully!
+    </div>
+  </div>
+</div>
+
+<!-- Enhanced CSS -->
+<style>
+/* Registration Container */
+.registration-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.registration-card {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+/* Header Gradient */
+.card-header-gradient {
+  background: linear-gradient(135deg, #667eea 9%, #764ba2 90%);
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: skewX(-25deg);
+  animation: shimmer 6s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+.header-icon {
+  font-size: 2rem;
+  margin-right: 0.5rem;
+  animation: bounce 2s infinite;
+}
+
+/* Progress Indicator */
+.progress-container {
+  margin: 1.5rem 0;
+}
+
+.progress {
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.5s ease;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.step {
+  font-size: 0.75rem;
+  color: #999;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.step.active {
+  color: #667eea;
+}
+
+.step.completed {
+  color: #28a745;
+}
+
+/* Enhanced Form Controls */
+.form-floating {
+  position: relative;
+}
+
+.form-floating > .form-control,
+.form-floating > .form-select {
+  height: calc(3.5rem + 2px);
+  line-height: 1.25;
+  padding: 1rem 0.75rem;
+  background: white;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.form-floating > label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  padding: 1rem 0.75rem;
+  pointer-events: none;
+  transform-origin: 0 0;
+  transition: all 0.3s ease;
+  color: #6c757d;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label,
+.form-floating > .form-select:focus ~ label,
+.form-floating > .form-select:valid ~ label {
+  opacity: .65;
+  transform: scale(.85) translateY(-0.5rem) translateX(0.15rem);
+  background: white;
+  padding: 0 0.25rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+/* Custom Select Styling */
+.custom-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  padding-right: 2.5rem;
+}
+
+.custom-select:disabled {
+  background-color: #f8f9fa;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Password Field */
+.password-field {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  z-index: 10;
+}
+
+.password-strength {
+  margin-top: 0.25rem;
+  height: 3px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.strength-bar {
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 3px;
+}
+
+.strength-bar.weak {
+  width: 33%;
+  background: #dc3545;
+}
+
+.strength-bar.medium {
+  width: 66%;
+  background: #ffc107;
+}
+
+.strength-bar.strong {
+  width: 100%;
+  background: #28a745;
+}
+
+/* Selection Summary */
+.selection-summary {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  animation: slideUp 0.5s ease;
+}
+
+.summary-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Validation Styles */
+.was-validated .form-control:valid,
+.was-validated .form-select:valid {
+  border-color: #28a745;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right calc(0.375em + 0.1875rem) center;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  padding-right: calc(1.5em + 0.75rem);
+}
+
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+  border-color: #dc3545;
+}
+
+/* Loading State */
+.btn-loading .spinner-border {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Animations */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .registration-container {
+    margin: 1rem auto;
+  }
+  
+  .card-header-gradient {
+    padding: 1.5rem;
+  }
+  
+  .progress-steps {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .summary-badges {
+    flex-direction: column;
+  }
+  
+  .badge {
+    width: 100%;
+    text-align: center;
+  }
+}
+</style>
+
+<!-- Enhanced JavaScript -->
+<script>
+// Course and Branch Data
+const courseData = {
+  BTech: {
+    name: "BTech",
+    branches: [
+      { value: "CSE", name: "Computer Science & Engineering" },
+
+
+      /* { value: "CSE", name: "CSE – Artificial Intelligence & Machine Learning" },
+      { value: "cse_ai_ds", name: "CSE – Artificial Intelligence & Data Science" },
+      { value: "cse_cyber", name: "CSE – Cyber Security" },
+      { value: "cse_iot_bc", name: "CSE – IoT & Blockchain" },*/
+
+      { value: "IT", name: "Information Technology" },
+      { value: "ECE", name: "Electronics & Communication Engineering" },
+      { value: "ME", name: "Mechanical Engineering" },
+      { value: "CIVIL", name: "Civil Engineering" },
+      { value: "EE", name: "Electrical Engineering" },
+      { value: "PETROLEUM", name: "Petroleum Engineering" },
+      { value: "AEROSPACE", name: "Aerospace Engineering" },
+      { value: "BIOTECH", name: "Biotechnology" }
+    ],
+    years: 4,
+    semesters: 8
+  },
+
+  BCA: {
+    name: "BCA",
+    branches: [
+      { value: "GENERAL", name: "General" },
+      { value: "AI & DS", name: "Artificial Intelligence & Data Science" },
+      { value: "INDUSTRY", name: "Industry Integrated" }
+    ],
+    years: 3,
+    semesters: 6
+  },
+
+  BSc: {
+    name: "BSc",
+    branches: [
+      { value: "IT", name: "Information Technology" },
+      { value: "BIOTECH", name: "Biotechnology" },
+      { value: "MICROBIO", name: "Microbiology" },
+      { value: "MLT", name: "Medical Lab Technology" },
+      { value: "NURSING", name: "Nursing" },
+      { value: "PHYSIOTHERAPY", name: "Physiotherapy" },
+      { value: "RADIOLOGY", name: "Medical Radiology & Imaging Technology" },
+      { value: "OTT", name: "Operation Theatre Technology" },
+      { value: "HOSPITALITY", name: "Hospitality Management (BHM)" }
+    ],
+    years: 3,
+    semesters: 6
+  },
+
+  BCom: {
+    name: "BCom (Hons)",
+    branches: [
+    { value: "GENERAL", name: "General" },
+    { value: "BANKING & FINANCE", name: "Banking & Finance" },
+    { value: "TAXATION", name: "Accounting, Auditing & Taxation" },
+    { value: "CORPORATE", name: "Corporate Accounting & Financial Analysis" },
+    { value: "ACCA", name: "International Finance & Accounting (ACCA)" }
+    ],
+    years: 3,
+    semesters: 6
+  },
+  
+  BBA: {
+    name: "BBA",
+    branches: [
+      { value: "GENERAL", name: "General" },
+      { value: "ECOMMERCE", name: "E-Commerce & Digital Marketing" },
+      { value: "AI & DS", name: "AI & Data Science" },
+      { value: "ENTREPRENEURSHIP", name: "Entrepreneurship" },
+      { value: "AVIATION", name: "Airport & Airline Management" }
+    ],
+    years: 3,
+    semesters: 6
+  },
+
+  MTech: {
+    name: "MTech",
+    branches: [
+      { value: "CSE", name: "Computer Science & Engineering" },
+      { value: "STRUCTURAL", name: "Structural Engineering" },
+      { value: "CAD / CAM", name: "CAD/CAM" }
+    ],
+    years: 2,
+    semesters: 4
+  },
+
+  MBA: {
+    name: "MBA",
+    branches: [
+      { value: "GENERAL", name: "General" },
+      { value: "AI & DS", name: "AI & Data Science" },
+      { value: "HOSPITALITY ADMIN", name: "Hospital Administration" },
+      { value: "AVIATION", name: "Aviation" }
+    ],
+    years: 2,
+    semesters: 4
+  },
+
+  MCA: {
+    name: "MCA",
+    branches: [{ value: "GENERAL", name: "General" }],
+    years: 2,
+    semesters: 4
+  },
+
+  MSc: {
+    name: "MSc",
+    branches: [
+      { value: "IT", name: "Information Technology" },
+      { value: "BIOTECH", name: "Biotechnology" },
+      { value: "MICROBIO", name: "Microbiology" }
+    ],
+    years: 2,
+    semesters: 4
+  },
+
+  BA: {
+    name: "BA (Hons)",
+    branches: [
+      { value: "ENGLISH", name: "English" },
+      { value: "PSYCHOLOGY", name: "Psychology" },
+      { value: "POLITICAL SCIENCE", name: "Political Science" },
+      { value: "SOCIOLOGY", name: "Sociology" },
+      { value: "ECONOMICS", name: "Economics" }
+    ],
+    years: 3,
+    semesters: 6
+  },
+
+  MA: {
+    name: "MA",
+    branches: [
+      { value: "ENGLISH", name: "English" },
+      { value: "ECONOMICS", name: "Economics" },
+      { value: "SOCIOLOGY", name: "Sociology" },
+      { value: "PSYCHOLOGY", name: "Psychology" }
+    ],
+    years: 2,
+    semesters: 4
+  }
+};
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  const courseSelect = document.getElementById('course');
+  const branchSelect = document.getElementById('branch');
+  const yearSelect = document.getElementById('year');
+  const semesterSelect = document.getElementById('semester');
+  const form = document.getElementById('registrationForm');
+
+  // Track form progress
+  updateFormProgress();
+
+  // Course change event
+  courseSelect.addEventListener('change', function() {
+    const selectedCourse = this.value;
+    
+    if (selectedCourse && courseData[selectedCourse]) {
+      // Enable and populate branch dropdown
+      branchSelect.disabled = false;
+      branchSelect.innerHTML = '<option value="" disabled selected>Select Branch...</option>';
+      
+      const courseInfo = courseData[selectedCourse];
+      courseInfo.branches.forEach(branch => {
+        const option = document.createElement('option');
+        option.value = branch.value;
+        option.textContent = branch.name;
+        branchSelect.appendChild(option);
+      });
+
+      // Enable and populate year dropdown
+      yearSelect.disabled = false;
+      yearSelect.innerHTML = '<option value="" disabled selected>Select Year...</option>';
+      for (let i = 1; i <= courseInfo.years; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `${i}${getOrdinalSuffix(i)} Year`;
+        yearSelect.appendChild(option);
+      }
+
+      // Update badge
+      document.getElementById('courseBadge').textContent = courseInfo.name;
+      showSelectionSummary();
+    }
+  });
+
+  // Branch change event
+  branchSelect.addEventListener('change', function() {
+    if (this.value) {
+      const selectedBranch = this.options[this.selectedIndex].text;
+      document.getElementById('branchBadge').textContent = selectedBranch;
+      showSelectionSummary();
+    }
+  });
+
+  // Year change event
+  yearSelect.addEventListener('change', function() {
+    if (this.value) {
+      const selectedCourse = courseSelect.value;
+      const courseInfo = courseData[selectedCourse];
+      const year = parseInt(this.value);
+      
+      // Enable and populate semester dropdown
+      semesterSelect.disabled = false;
+      semesterSelect.innerHTML = '<option value="" disabled selected>Select Semester...</option>';
+      
+      const startSem = (year - 1) * 2 + 1;
+      const endSem = year * 2;
+      
+      for (let i = startSem; i <= endSem && i <= courseInfo.semesters; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `${i}${getOrdinalSuffix(i)} Semester`;
+        semesterSelect.appendChild(option);
+      }
+      
+      document.getElementById('yearBadge').textContent = `${year}${getOrdinalSuffix(year)} Year`;
+      showSelectionSummary();
+    }
+  });
+
+  // Semester change event
+  semesterSelect.addEventListener('change', function() {
+    if (this.value) {
+      document.getElementById('semesterBadge').textContent = `Sem ${this.value}`;
+      showSelectionSummary();
+    }
+  });
+
+  // Password strength checker
+  document.getElementById('password').addEventListener('input', function() {
+    checkPasswordStrength(this.value);
+  });
+
+  // Confirm password validation
+  document.getElementById('confirmPassword').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    if (this.value !== password) {
+      this.setCustomValidity('Passwords do not match');
+    } else {
+      this.setCustomValidity('');
+    }
+  });
+
+  // Form submission
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (form.checkValidity()) {
+      // Show loading state
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.querySelector('.btn-text').style.display = 'none';
+      submitBtn.querySelector('.btn-loading').style.display = 'inline-block';
+      submitBtn.disabled = true;
+      
+      // Simulate form submission (replace with actual submission)
+      setTimeout(() => {
+        form.submit();
+      }, 1500);
+    }
+    
+    form.classList.add('was-validated');
+  });
+
+  // Track input changes for progress
+  const inputs = form.querySelectorAll('input, select');
+  inputs.forEach(input => {
+    input.addEventListener('change', updateFormProgress);
+  });
+});
+
+// Helper Functions
+function getOrdinalSuffix(num) {
+  const j = num % 10;
+  const k = num % 100;
+  if (j == 1 && k != 11) return "st";
+  if (j == 2 && k != 12) return "nd";
+  if (j == 3 && k != 13) return "rd";
+  return "th";
+}
+
+function showSelectionSummary() {
+  const summary = document.getElementById('selectionSummary');
+  summary.style.display = 'block';
+}
+
+function checkPasswordStrength(password) {
+  const strengthBar = document.getElementById('strengthBar');
+  let strength = 0;
+  
+  if (password.length >= 5)strength++;
+  if (password.match(/[a-z]/)) strength++;
+  if (password.match(/[A-Z]/)) strength++;
+  if (password.match(/[0-9]/)) strength++;
+  if (password.match(/[^a-zA-Z0-9]/)) strength++;
+  
+  strengthBar.classList.remove('weak', 'medium', 'strong');
+  
+  if (strength < 3) {
+    strengthBar.classList.add('weak');
+  } else if (strength < 4) {
+    strengthBar.classList.add('medium');
+  } else {
+    strengthBar.classList.add('strong');
+  }
+}
+
+function togglePassword(fieldId) {
+  const field = document.getElementById(fieldId);
+  const icon = field.nextElementSibling.querySelector('i');
+  
+  if (field.type === 'password') {
+    field.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    field.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}
+
+function updateFormProgress() {
+  const form = document.getElementById('registrationForm');
+  const inputs = form.querySelectorAll('input[required], select[required]');
+  const filledInputs = Array.from(inputs).filter(input => {
+    if (input.type === 'checkbox') return input.checked;
+    return input.value !== '';
+  });
+  
+  const progress = (filledInputs.length / inputs.length) * 100;
+  document.getElementById('formProgress').style.width = progress + '%';
+  
+  // Update step indicators
+  const steps = document.querySelectorAll('.step');
+  steps.forEach(step => {
+    const stepNum = parseInt(step.dataset.step);
+    const stepInputs = form.querySelectorAll(`[data-step="${stepNum}"][required]`);
+    const stepFilled = Array.from(stepInputs).filter(input => input.value !== '');
+    
+    if (stepFilled.length === stepInputs.length && stepInputs.length > 0) {
+      step.classList.add('completed');
+    }
+  });
+}
+
+// Show success toast after registration (if needed)
+function showSuccessToast() {
+  const toast = new bootstrap.Toast(document.getElementById('successToast'));
+  toast.show();
+}
+</script>
+
 {% endblock %}
